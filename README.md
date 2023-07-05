@@ -1,0 +1,14 @@
+# 导师任务分配
+
+
+要求实现一篇论文，论文信息：“GrabCut” — Interactive Foreground Extraction using Iterated Graph Cuts, ACM SIGGRAPH, 2004. https://cvg.ethz.ch/teaching/cvl/2012/grabcut-siggraph04.pdf 
+
+
+### 实现GrabCut任务时请注意：
+1.  Matting部分不是GrabCut算法的精华，这部分可以不做。
+2.  注意输出整个程序的一些重要中间结果（那些重要自己判断），面试中会有相关问题。
+3.  如果有期末考试之类的事情，优先准备期末考试，不用急着参与测验。测验问题回答时的错误不要归因于忙期末考试所以没时间细看论文。 
+4.  面试用QQ视频共享桌面的形式。
+5.  代码请用C++自己实现（GraphCut部分可以调用现成的函数库：https://vision.cs.uwaterloo.ca/code/ 中的Max-flow/min-cut）。图片的输入输出和用户交互部分推荐调用OpenCV。Python 语言不是不让用，但是很难写出实时运行的代码
+6.  完成这个任务时，请思考一个问题，GMM颜色模型换成颜色直方图（可以参考这篇论文https://mmcheng.net/zh/salobj/ 看看怎么实现快速的彩色颜色的直方图），会对结果有什么影响。
+7.  对于一个400*600的图像，这个程序运行时间通常是1s以内（实现的好的话，0.1s左右也很正常）。如果你的程序运行时间明显过长，请认真优化。注意测量程序执行时间请用release模式（显示，实际运行等场合用的），而不是debug模式（调试程序用的，经常比release模式慢10倍左右）。
