@@ -1,0 +1,13 @@
+# ninja log v5
+706	710	1688647119680169282	maxflow/libmaxflow.a	ebcb1137d225938a
+0	20	1688845609815409380	build.ninja	3c5ed367055f0f03
+1	1154	1688844662039565093	segmentation/CMakeFiles/segmentation.dir/GMM.cpp.o	4f602133ed69312e
+1	1252	1688844898432773100	segmentation/CMakeFiles/segmentation.dir/segmentation.cpp.o	411e60cfc22a33e2
+1	1056	1688844898236770592	CMakeFiles/main.dir/main.cpp.o	fe0ce054346769b
+1	1004	1688845254120575438	maxflow/CMakeFiles/segmentation.dir/GMM.cpp.o	8a29414b3d8f0a84
+825	830	1688806302325790450	segmentation/libsegmentation.a	6df52f13f03176ac
+1	204	1688647119172189548	maxflow/CMakeFiles/maxflow.dir/graph.cpp.o	eddfce6496897356
+834	889	1688808228022674603	main	348c76a319089e78
+1	706	1688647119672169601	maxflow/CMakeFiles/maxflow.dir/maxflow.cpp.o	d78b00e973ded162
+1	1147	1688845254264576737	maxflow/CMakeFiles/segmentation.dir/segmentation.cpp.o	b56e3e2c924f8608
+0	20	1688845609815409380	build.ninja	3c5ed367055f0f03

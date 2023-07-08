@@ -1,0 +1,113 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"jsonFile" : "directory-.-Release-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.11-3.18"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "segmentation",
+					"jsonFile" : "directory-segmentation-Release-8ceca3cbbbad91fb2391.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.11-3.18"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "segmentation",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "maxflow",
+					"jsonFile" : "directory-maxflow-Release-04d970d05408825eee59.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.11-3.18"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "maxflow",
+					"targetIndexes" : 
+					[
+						1
+					]
+				}
+			],
+			"name" : "Release",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "grabcut",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "grabcut::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-grabcut-Release-554d3d59863c2f1d52d6.json",
+					"name" : "grabcut",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "maxflow::@68f402caf7f09af8f1dd",
+					"jsonFile" : "target-maxflow-Release-ec37886e81bcff8bf6dc.json",
+					"name" : "maxflow",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "segmentation::@63174c2ae7b0fc6372bc",
+					"jsonFile" : "target-segmentation-Release-ebcb979db810081a2762.json",
+					"name" : "segmentation",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/nuc/workspace/GrabCut/cmake-build-release",
+		"source" : "/home/nuc/workspace/GrabCut"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 4
+	}
+}

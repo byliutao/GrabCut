@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.11-3.18)
 
-project(main)
+project(grabcut)
 
 find_package( OpenCV REQUIRED )
+add_subdirectory(segmentation)
 add_subdirectory(maxflow)
-add_executable(main main.cpp)
+add_executable(grabcut main.cpp)
 
-target_link_libraries(main ${OpenCV_LIBS} maxflow)
-target_include_directories(main PUBLIC
+target_link_libraries(grabcut ${OpenCV_LIBS} segmentation)
+target_include_directories(grabcut PUBLIC
                           "${OpenCV_INCLUDE_DIRS}"
-                          "${PROJECT_BINARY_DIR}"
-                          "${PROJECT_SOURCE_DIR}/maxflow"
-                          )
+                          "${PROJECT_SOURCE_DIR}/segmentation"
+        )

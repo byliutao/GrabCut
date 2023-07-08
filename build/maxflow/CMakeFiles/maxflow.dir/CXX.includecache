@@ -1,0 +1,46 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/nuc/workspace/GrabCut/maxflow/block.h
+block.h
+/home/nuc/workspace/GrabCut/maxflow/block.h
+stdlib.h
+-
+
+/home/nuc/workspace/GrabCut/maxflow/graph.cpp
+stdio.h
+-
+stdlib.h
+-
+string.h
+-
+graph.h
+/home/nuc/workspace/GrabCut/maxflow/graph.h
+instances.inc
+/home/nuc/workspace/GrabCut/maxflow/instances.inc
+
+/home/nuc/workspace/GrabCut/maxflow/graph.h
+string.h
+-
+block.h
+/home/nuc/workspace/GrabCut/maxflow/block.h
+assert.h
+-
+
+/home/nuc/workspace/GrabCut/maxflow/instances.inc
+graph.h
+/home/nuc/workspace/GrabCut/maxflow/graph.h
+
+/home/nuc/workspace/GrabCut/maxflow/maxflow.cpp
+stdio.h
+-
+graph.h
+/home/nuc/workspace/GrabCut/maxflow/graph.h
+instances.inc
+/home/nuc/workspace/GrabCut/maxflow/instances.inc
+
