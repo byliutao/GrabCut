@@ -22,13 +22,13 @@ private:
 
     void assignGMM(GMM &fgd, GMM &bgd, Mat &img_k);
 
-    void learGMM(GMM &fgd, GMM &bgd, const vector<Vec3f> &fgd_vec, const vector<Vec3f> &bgd_vec, Mat &img_k);
+    void learGMM(GMM &fgd, GMM &bgd, vector<Vec3b> &fgd_vec, vector<Vec3b> &bgd_vec, Mat &img_k);
 
     void estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k);
 
     void getFgdBgdKbyImgK(vector<int> &fgd_labels, vector<int> &bgd_labels, Mat &img_k);
 
-    void getFgdBgdVecByTU(vector<Vec3f> &fgd_vec, vector<Vec3f> &bgd_vec);
+    void getFgdBgdVecByTU(vector<Vec3b> &fgd_vec, vector<Vec3b> &bgd_vec);
 
     bool isContainByImage(int i, int j);
 
@@ -50,6 +50,8 @@ public:
     void initByRect(Rect2d rect);
 
     void iter();
+
+    void getFgdImg(Mat &img);
 
 };
 

@@ -19,21 +19,19 @@ private:
     vector<Vec3f> _means;
     vector<Mat> _covs;
 
-    vector<Vec3f> *_cluster_sets;
+    double calculatePointProbability(const cv::Vec3b& point, int k);
 
-    double calculatePointProbability(const cv::Vec3f& point, int k);
-
-    void calculateParm(int total_points);
+    void calculateParm(int total_points,  vector<vector<Vec3b>> cluster_sets);
 public:
     GMM(int K);
 
-    void init_parm_by_KMeans(vector<Vec3f> samples_vec);
+    void init_parm_by_KMeans(vector<Vec3b> samples_vec);
 
-    int getRelatedK(Vec3f point);
+    int getRelatedK(Vec3b point);
 
-    int getProbTimeWeight(Vec3f point, int k);
+    int getProbTimeWeight(Vec3b point, int k);
 
-    void update_parm(vector<Vec3f> samples_vec, vector<int> &data_labels);
+    void update_parm(vector<Vec3b> samples_vec, vector<int> &data_labels);
 };
 
 

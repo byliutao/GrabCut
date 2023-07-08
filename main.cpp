@@ -60,6 +60,10 @@ void grabcut_test(Mat &img, Rect2d &interst_area){
     Segmentation segmentation(img);
     segmentation.initByRect(interst_area);
     segmentation.iter();
+    Mat fgd;
+    segmentation.getFgdImg(fgd);
+    imshow("fgd",fgd);
+    waitKey(0);
 }
 
 void opencv_grabcut(Mat &img, Rect2d &roi){
@@ -80,7 +84,7 @@ void opencv_grabcut(Mat &img, Rect2d &roi){
     img.copyTo(result,bg_mask);
     imshow("opencv_grabcut_mask",bg_mask);
     imshow("opencv_grabcut_result",result);
-    waitKey(0);
+//    waitKey(0);
     return;
 }
 

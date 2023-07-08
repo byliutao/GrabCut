@@ -4,11 +4,11 @@ void Segmentation::assignGMM(GMM &fgd, GMM &bgd, Mat &img_k){
     int rows = _source_img.rows;
     int cols = _source_img.cols;
     for (int i = 0; i < rows; i++) {
-        Vec3f* ptr = _source_img.ptr<Vec3f>(i);
+        Vec3b* ptr = _source_img.ptr<Vec3b>(i);
         uchar* ptr_u = _T_U.ptr<uchar>(i);
         int* ptr_k = img_k.ptr<int>(i);
         for (int j = 0; j < cols; j++) {
-            Vec3f& pixel = ptr[j];
+            Vec3b& pixel = ptr[j];
             uchar& value_u = ptr_u[j];
             int k = 0;
             if(value_u == UnknownBackground || value_u == Background){
@@ -22,11 +22,13 @@ void Segmentation::assignGMM(GMM &fgd, GMM &bgd, Mat &img_k){
     }
 }
 
-void Segmentation::learGMM(GMM &fgd, GMM &bgd, const vector<Vec3f> &fgd_vec, const vector<Vec3f> &bgd_vec, Mat &img_k){
+void Segmentation::learGMM(GMM &fgd, GMM &bgd, vector<Vec3b> &fgd_vec, vector<Vec3b> &bgd_vec, Mat &img_k){
     vector<int> fgd_labels, bgd_labels;
     getFgdBgdKbyImgK(fgd_labels,bgd_labels,img_k);
     fgd.update_parm(fgd_vec,fgd_labels);
     bgd.update_parm(bgd_vec,bgd_labels);
+    fgd_vec.clear();
+    bgd_vec.clear();
 }
 
 void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
@@ -46,10 +48,52 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
             uchar value_u = _T_U.at<uchar>(i,j);
             int k = img_k.at<int>(i,j);
 
-            vector<pair<Vec3b,uchar>> neighbors;
-            vector<Vec2i> neighbors_location;
+            int node_index = graph.add_node();
+
             pair<Vec3b,uchar> center(pixel,value_u);
             Vec2i center_location(i,j);
+
+            if(isContainByImage(i-1,j-1)){
+                //(i,j) to (i-1,j-1)
+                double cap1 = _gamma * cv::norm(Vec2i(i-1,j-1),Vec2i(i,j)) *
+                             exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j-1),_source_img.at<cv::Vec3b>(i, j))) *
+                             (_T_U.at<uchar>(i-1,j-1) != _T_U.at<uchar>(i,j)) ? 1.0 : 0.0;
+                graph.add_edge(node_index,node_index-_source_img.cols-1,cap1,cap1);
+                //(i-1,j) to (i-1,j-1)
+                double cap2 = _gamma * cv::norm(Vec2i(i-1,j-1),Vec2i(i-1,j)) *
+                              exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j-1),_source_img.at<cv::Vec3b>(i-1, j))) *
+                              (_T_U.at<uchar>(i-1,j-1) != _T_U.at<uchar>(i-1,j)) ? 1.0 : 0.0;
+                graph.add_edge(node_index-_source_img.cols,node_index-_source_img.cols-1,cap2,cap2);
+                //(i,j-1) to (i-1,j-1)
+                double cap3 = _gamma * cv::norm(Vec2i(i-1,j-1),Vec2i(i,j-1)) *
+                              exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j-1),_source_img.at<cv::Vec3b>(i, j-1))) *
+                              (_T_U.at<uchar>(i-1,j-1) != _T_U.at<uchar>(i,j-1)) ? 1.0 : 0.0;
+                graph.add_edge(node_index-1,node_index-_source_img.cols-1,cap3,cap3);
+                //(i,j-1) to (i-1,j)
+                double cap4 = _gamma * cv::norm(Vec2i(i-1,j),Vec2i(i,j-1)) *
+                              exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j),_source_img.at<cv::Vec3b>(i, j-1))) *
+                              (_T_U.at<uchar>(i-1,j) != _T_U.at<uchar>(i,j-1)) ? 1.0 : 0.0;
+                graph.add_edge(node_index-1,node_index-_source_img.cols,cap4,cap4);
+                if(j+1 == _source_img.cols){
+                    //(i-1,j) to (i,j)
+                    double cap1 = _gamma * cv::norm(Vec2i(i-1,j),Vec2i(i,j)) *
+                                  exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j),_source_img.at<cv::Vec3b>(i, j))) *
+                                  (_T_U.at<uchar>(i-1,j) != _T_U.at<uchar>(i,j)) ? 1.0 : 0.0;
+                    graph.add_edge(node_index,node_index-_source_img.cols,cap1,cap1);
+                }
+                if(i+1 == _source_img.rows){
+                    //(i,j-1) to (i,j)
+                    double cap1 = _gamma * cv::norm(Vec2i(i,j-1),Vec2i(i,j)) *
+                                  exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i, j-1),_source_img.at<cv::Vec3b>(i, j))) *
+                                  (_T_U.at<uchar>(i,j-1) != _T_U.at<uchar>(i,j)) ? 1.0 : 0.0;
+                    graph.add_edge(node_index,node_index-1,cap1,cap1);
+                }
+            }
+
+            double W_source, W_sink;
+            vector<pair<Vec3b,uchar>> neighbors;
+            vector<Vec2i> neighbors_location;
+
             for(int n = i - 1; n <= i + 1; n++){
                 for(int m = j - 1; m <= j + 1; m++){
                     if(isContainByImage(n,m) && (n != i || m != j)){
@@ -59,34 +103,6 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
                 }
             }
             double maxCap = getMaxCap(neighbors_location, neighbors, center_location, center);
-
-            if(isContainByImage(i,j+1)){
-                double cap = _gamma * cv::norm(Vec2i(i,j+1),center_location) *
-                             exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i, j+1),center.first)) *
-                             (_T_U.at<uchar>(i,j+1) != center.second) ? 1.0 : 0.0;
-                graph.add_edge(i,j+1,cap,cap);
-            }
-            if(isContainByImage(i+1,j)){
-                double cap = _gamma * cv::norm(Vec2i(i+1,j),center_location) *
-                             exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i+1, j),center.first)) *
-                             (_T_U.at<uchar>(i+1,j) != center.second) ? 1.0 : 0.0;
-                graph.add_edge(i+1,j,cap,cap);
-            }
-            if(isContainByImage(i+1,j+1)){
-                double cap = _gamma * cv::norm(Vec2i(i+1,j+1),center_location) *
-                             exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i+1, j+1),center.first)) *
-                             (_T_U.at<uchar>(i+1,j+1) != center.second) ? 1.0 : 0.0;
-                graph.add_edge(i+1,j+1,cap,cap);
-            }
-            if(isContainByImage(i+1,j) && isContainByImage(i,j+1)){
-                double cap = _gamma * cv::norm(Vec2i(i+1,j),center_location) *
-                             exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i+1, j),center.first)) *
-                             (_T_U.at<uchar>(i+1,j) != center.second) ? 1.0 : 0.0;
-                graph.add_edge(i+1,j,cap,cap);
-            }
-
-            int node_index = graph.add_node();
-            double W_source, W_sink;
 
             if(value_u == Background){
                 W_sink = 1 + maxCap;
@@ -113,13 +129,13 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
     for (int i = 0; i < rows; i++) {
         uchar* ptr = _T_U.ptr<uchar>(i);
         for (int j = 0; j < cols; j++) {
-            uchar& pixel = ptr[j];
-            if(pixel == UnknownBackground || pixel == UnknownObject){
+            uchar& value_u = ptr[j];
+            if(value_u == UnknownBackground || value_u == UnknownObject){
                 if(graph.what_segment(i*_source_img.cols+j) == Graph<double, double, double>::SOURCE){
-                    pixel = UnknownObject;
+                    value_u = UnknownObject;
                 }
                 else{
-                    pixel = UnknownBackground;
+                    value_u = UnknownBackground;
                 }
             }
 
@@ -132,13 +148,13 @@ void Segmentation::getFgdBgdKbyImgK(vector<int> &fgd_labels, vector<int> &bgd_la
     int rows = _source_img.rows;
     int cols = _source_img.cols;
     for (int i = 0; i < rows; i++) {
-        Vec3f* ptr = _source_img.ptr<Vec3f>(i);
+        Vec3b* ptr = _source_img.ptr<Vec3b>(i);
         int* ptr_k = img_k.ptr<int>(i);
         uchar* ptr_u = _T_U.ptr<uchar>(i);
         for (int j = 0; j < cols; j++) {
             int& k = ptr_k[j];
             uchar& value_u = ptr_u[j];
-            Vec3f& pixel = ptr[j];
+            Vec3b& pixel = ptr[j];
             if(value_u == UnknownBackground || value_u == Background){
                 bgd_labels.push_back(k);
             }
@@ -149,14 +165,14 @@ void Segmentation::getFgdBgdKbyImgK(vector<int> &fgd_labels, vector<int> &bgd_la
     }
 }
 
-void Segmentation::getFgdBgdVecByTU(vector<Vec3f> &fgd_vec, vector<Vec3f> &bgd_vec){
+void Segmentation::getFgdBgdVecByTU(vector<Vec3b> &fgd_vec, vector<Vec3b> &bgd_vec){
     int rows = _source_img.rows;
     int cols = _source_img.cols;
     for (int i = 0; i < rows; i++) {
-        Vec3f* ptr = _source_img.ptr<Vec3f>(i);
+        Vec3b* ptr = _source_img.ptr<Vec3b>(i);
         uchar* ptr_u = _T_U.ptr<uchar>(i);
         for (int j = 0; j < cols; j++) {
-            Vec3f& pixel = ptr[j];
+            Vec3b& pixel = ptr[j];
             uchar& value_u = ptr_u[j];
             if(value_u == UnknownBackground || value_u == Background){
                 bgd_vec.push_back(pixel);
@@ -169,7 +185,11 @@ void Segmentation::getFgdBgdVecByTU(vector<Vec3f> &fgd_vec, vector<Vec3f> &bgd_v
 }
 
 bool Segmentation::isContainByImage(int i, int j){
-    return (i < _source_img.rows && j < _source_img.cols);
+    int imageWidth = _source_img.cols;
+    int imageHeight = _source_img.rows;
+
+    return i >= 0 && i < imageWidth && j >= 0 && j < imageHeight;
+
 }
 
 void Segmentation::calculateBeta(){
@@ -240,15 +260,24 @@ void Segmentation::initByRect(cv::Rect2d rect) {
 void Segmentation::iter(){
     GMM fgd(5), bgd(5);
     //获取前后景数据
-    vector<Vec3f> fgd_vec, bgd_vec;
+    vector<Vec3b> fgd_vec, bgd_vec;
     Mat img_k(_source_img.size(), CV_32SC1);
 
     getFgdBgdVecByTU(fgd_vec,bgd_vec);
+    fgd.init_parm_by_KMeans(fgd_vec);
+    bgd.init_parm_by_KMeans(bgd_vec);
 
-
-    for(;;){
+    for(int i = 0; i < 3; i++){
         assignGMM(fgd,bgd,img_k);
         learGMM(fgd,bgd,fgd_vec,bgd_vec,img_k);
         estimateSeg(fgd,bgd,img_k);
     }
+}
+
+void Segmentation::getFgdImg(Mat &img){
+    Mat bgd_mask = (_T_U==1)+(_T_U==3);
+    Mat fgd_mask = (_T_U==0)+(_T_U==2);
+
+    _source_img.copyTo(img,fgd_mask);
+    return;
 }
