@@ -1,2 +1,0 @@
-/usr/bin/ar qc libmaxflow.a  CMakeFiles/maxflow.dir/graph.cpp.o CMakeFiles/maxflow.dir/maxflow.cpp.o
-/usr/bin/ranlib libmaxflow.a

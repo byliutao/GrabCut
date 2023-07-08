@@ -1,6 +1,0 @@
-/home/nuc/workspace/GrabCut/cmake-build-debug/CMakeFiles/main.dir
-/home/nuc/workspace/GrabCut/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/nuc/workspace/GrabCut/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/nuc/workspace/GrabCut/cmake-build-debug/maxflow/CMakeFiles/maxflow.dir
-/home/nuc/workspace/GrabCut/cmake-build-debug/maxflow/CMakeFiles/edit_cache.dir
-/home/nuc/workspace/GrabCut/cmake-build-debug/maxflow/CMakeFiles/rebuild_cache.dir
