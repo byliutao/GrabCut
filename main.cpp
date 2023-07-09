@@ -1,6 +1,8 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "segmentation/segmentation.hpp"
+
+
 using namespace std;
 using namespace cv;
 
@@ -57,7 +59,7 @@ Mat calcGrayHist(const Mat & image)
 }
 
 void grabcut_test(Mat &img, Rect2d &interst_area){
-    Segmentation segmentation(img);
+    Segmentation segmentation(img,50.0,450.0,10);
     segmentation.initByRect(interst_area);
     segmentation.iter();
     Mat fgd;
@@ -89,8 +91,8 @@ void opencv_grabcut(Mat &img, Rect2d &roi){
 }
 
 int main(){
-    image = imread("/home/nuc/workspace/GrabCut/data/fox.jpg");
-    resize(image,image,Size(480,320));
+    image = imread("/home/nuc/workspace/GrabCut/data/statue.jpg");
+    resize(image,image,Size(image.cols/2,image.rows/2));
     Mat img = image.clone();
     if (image.empty()) {
         std::cout << "无法读取图像文件" << std::endl;
@@ -107,6 +109,7 @@ int main(){
     // 显示图像并等待选择矩形
     imshow("Image", image);
     waitKey(0);
+
 
     // 打印选择的矩形坐标
     std::cout << "Selected Rect: (" << selectedRect.x << ", " << selectedRect.y << ", "

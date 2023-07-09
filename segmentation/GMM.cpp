@@ -81,13 +81,16 @@ void GMM::init_parm_by_KMeans(vector<Vec3b> samples_vec){
 
     calculateParm(samples_vec.size(),cluster_sets);
 
+#ifdef SHOW_KMEANS_CENTER
+
+#endif
 }
 
 int GMM::getRelatedK(Vec3b point){
     int resK = 0;
-    int max_prob = 0;
+    double max_prob = 0;
     for(int k = 0; k < _K; k++){
-        int tmp_prob = calculatePointProbability(point,k);
+        double tmp_prob = calculatePointProbability(point,k);
         if(tmp_prob > max_prob){
             max_prob = tmp_prob;
             resK = k;
@@ -96,8 +99,12 @@ int GMM::getRelatedK(Vec3b point){
     return resK;
 }
 
-int GMM::getProbTimeWeight(Vec3b point, int k){
-    return calculatePointProbability(point,k)*_weights[k];
+double GMM::getWeightedProb(Vec3b point){
+    double res = 0;
+    for(int i = 0; i < _K; i++){
+        res += calculatePointProbability(point,i)*_weights[i];
+    }
+    return res;
 }
 
 void GMM::update_parm(vector<Vec3b> samples_vec, vector<int> &data_labels){

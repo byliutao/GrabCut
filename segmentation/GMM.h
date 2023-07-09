@@ -5,6 +5,7 @@
 
 #ifndef MAIN_GMM_H
 #define MAIN_GMM_H
+#define SHOW_KMEANS_CENTER
 
 #include <vector>
 #include <iostream>
@@ -29,7 +30,7 @@ public:
 
     int getRelatedK(Vec3b point);
 
-    int getProbTimeWeight(Vec3b point, int k);
+    double getWeightedProb(Vec3b point);
 
     void update_parm(vector<Vec3b> samples_vec, vector<int> &data_labels);
 };
