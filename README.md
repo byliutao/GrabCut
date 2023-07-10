@@ -22,6 +22,8 @@ Thirdly, for minimizing the energy, it generates a graph, where each pixel repre
 It utilizes the min-cut algorithm to find a cut with the min energy value, and then use the cut generating new foreground and background, recalculating the GMM model's parameters, updating the graph's edges and doing this iteratively to
 achieve the best result of segmentation.
 
+the graph definition:  
+![1.jpg](data%2F1.png)
 
 
 ## GMM model
@@ -29,6 +31,7 @@ A kind of cluster algorithm, here are some helpful articles to understand it.
 https://towardsdatascience.com/gaussian-mixture-models-explained-6986aaf5a95
 https://zhuanlan.zhihu.com/p/30483076
 
+The paper use GMM model to calculate the uncertain pixels' probability to belong fgd or bgd, and set it to the t-links' weight(we will discuss t-link below)    
 To successfully reimplemented the paper's work, we need to construct two GMM model for the bgd_points and fgd_points.  
 For the GMM part, what we need to do cover:
 1. init bgd and fgd GMM model's parameter(weight, means, covariance) by KMeans algorithm.
@@ -36,6 +39,9 @@ For the GMM part, what we need to do cover:
 3. update the bgd and fgd GMM model's parameter by the newly calculated K from step 2.
 
 ## Minimum Cut
+Some helpful article:
+https://www.baeldung.com/cs/minimum-cut-graphs#:~:text=The%20minimum%20cut%20of%20a%20weighted%20graph%20is%20defined%20as,the%20graph%20into%20two%20sets.
+
 Minimum cut is an algorithm to separate a graph's nodes into to two categories, which have the minimum sum of cut edges' weight.  
 The paper use the minimum cut algorithm as a tool to minimize the energy function. It sets each graph's node with two kind of edges, 
 t-links(terminal-links) and n-links(neighbor-links), and use the U(region function) and V(boundary function) 
@@ -45,6 +51,9 @@ For the Minimum Cut part, what we need to do cover:
 1. calculate the const beta and K value.
 2. generate a graph by the given GMM model and bgd_fgd_distribution(mask).
 3. do max-flow to get the minimum cut.
+
+t-links and n-links definition:  
+![2.png](data%2F2.png)
 
 ## Combine the GMM and Minimum cut
 1. init GMM's and Minimum-cut's parameters.
