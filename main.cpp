@@ -14,8 +14,8 @@ Mat image;
 const double super_parameter_lambada = 5.0;
 //vFunction(n_links and some t_links use) coefficient, also the max_value of vFunction, set bigger then Boundary weighs more
 const double super_parameter_gamma = 50.0;
-const int super_parameter_iterTimes = 3;//decide the iterTime of loop
-const string test_image_name = "people1";
+const int super_parameter_iterTimes = 4;//decide the iterTime of loop
+const string test_image_name = "statue";
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
@@ -45,24 +45,6 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
         rectangle(tempImage, selection, Scalar(0, 255, 0), 2);
         imshow("Image", tempImage);
     }
-}
-
-Mat calcGrayHist(const Mat & image)
-{
-    Mat histogram = Mat::zeros(Size(256,1),CV_32SC1);    	 //256对应的是0~255共计256个像素值
-    //注意，Size对应的是x和y，也就是第一个元数是矩阵的列数
-    int rows = image.rows;   	 //输入图像的行数
-    int cols = image.cols;		 //输入图像的列数
-
-    for(int r =0;r<rows;r++)
-    {
-        for(int c = 0;c<cols;c++)
-        {
-            int index = (int)image.at<uchar>(r,c);	//获取每个点的像素值
-            histogram.at<int>(0,index) +=1;			//获取了一个像素值，在相应的位置上加1
-        }
-    }
-    return histogram;
 }
 
 void grabcut_test(Mat &img, Rect2d &interst_area){
