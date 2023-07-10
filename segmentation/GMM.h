@@ -19,9 +19,11 @@ private:
     vector<double> _weights;
     vector<Vec3f> _means;
     vector<Mat> _covs;
+    vector<Mat> _covs_inv;
+    vector<double> _covs_det;
 
     double calculatePointProbability(const cv::Vec3b& point, int k);
-
+    double calculatePointProbabilitySpeedVersion(const cv::Vec3b& point, int k);
     void calculateParm(int total_points,  vector<vector<Vec3b>> cluster_sets);
 public:
     GMM(int K);

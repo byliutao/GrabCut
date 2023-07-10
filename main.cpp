@@ -12,7 +12,7 @@ Mat image;
 
 const double super_parameter_lambada = 5.0; //decide the weight of Region and Boundary, set bigger then Region weighs more.
 const double super_parameter_gamma = 50.0;//vFunction coefficient, set bigger then Boundary weighs less
-const int super_parameter_iterTimes = 5;//decide the iterTime of loop
+const int super_parameter_iterTimes = 3;//decide the iterTime of loop
 const string test_image_name = "statue";
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
@@ -77,8 +77,10 @@ void opencv_grabcut(Mat &img, Rect2d &roi){
     Mat bgdModel, fgdModel;
     Mat mask, bg_mask, fg_mask;
     Mat result;
-
+    double t1 = cv::getTickCount();
     grabCut(img,mask,roi,bgdModel,fgdModel,1,GC_INIT_WITH_RECT);
+    double t2 = cv::getTickCount();
+    std::cout <<"opencv_consume_time: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << "ms" << endl;
 
 
     bg_mask = (mask==1)+(mask==3);

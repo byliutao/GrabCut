@@ -366,7 +366,7 @@ void Segmentation::iter(){
         std::cout <<"setp1: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << " ";
         std::cout <<"setp2: "<< (t3 - t2) / cv::getTickFrequency() * 1000 << " ";
         std::cout <<"setp3: "<< (t4 - t3) / cv::getTickFrequency() * 1000 << " ";
-        std::cout <<"all: "<< (t4 - t1) / cv::getTickFrequency() * 1000 << " ";
+        std::cout <<"total_consume_time: "<< (t4 - t1) / cv::getTickFrequency() * 1000 << "ms ";
         std::cout << std::endl;
     }
 }

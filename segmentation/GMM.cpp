@@ -8,16 +8,33 @@ double GMM::calculatePointProbability(const cv::Vec3b& point, int k)
     cv::Mat diff = ( cv::Mat_<float>(1,3) << point[0] - _means[k][0], point[1] - _means[k][1], point[2] - _means[k][2]);
     cv::Mat diffT;
     cv::transpose(diff, diffT);
-    cv::Mat exponent = -0.5 * diff * _covs[k].inv() * diffT;
-    double det = cv::determinant(_covs[k]);
-    double probability = (1.0 / (std::sqrt(std::pow(2 * CV_PI, 3) * det))) * std::exp(exponent.at<float>(0, 0));
+//    double t1 = cv::getTickCount();
+    cv::Mat exponent = -0.5 * diff * _covs_inv[k] * diffT;
+    double probability = (1.0 / (std::sqrt(std::pow(2 * CV_PI, 3) * _covs_det[k]))) * std::exp(exponent.at<float>(0, 0));
+//    double t2 = cv::getTickCount();
+//    std::cout <<"time: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << " ";
     return probability;
 }
+
+double GMM::calculatePointProbabilitySpeedVersion(const cv::Vec3b& point, int k){
+//    double t1 = cv::getTickCount();
+    Vec3f diff = (Vec3f)point - _means[k];
+    double exponent = diff[0] * (diff[0] * _covs_inv[k].at<float>(0, 0) + diff[1] * _covs_inv[k].at<float>(1, 0) + diff[2] * _covs_inv[k].at<float>(2, 0))
+                    + diff[1] * (diff[0] * _covs_inv[k].at<float>(0, 1) + diff[1] * _covs_inv[k].at<float>(1, 1) + diff[2] * _covs_inv[k].at<float>(2, 1))
+                    + diff[2] * (diff[0] * _covs_inv[k].at<float>(0, 2) + diff[1] * _covs_inv[k].at<float>(1, 2) + diff[2] * _covs_inv[k].at<float>(2, 2));
+    double probability = (1.0 / (std::sqrt(std::pow(2 * CV_PI, 3) * _covs_det[k]))) * exp(-0.5 * exponent);
+//    double t2 = cv::getTickCount();
+//    std::cout <<"timeS: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << " ";
+    return probability;
+}
+
 
 void GMM::calculateParm(int total_points, vector<vector<Vec3b>> cluster_sets) {
     _means.clear();
     _weights.clear();
     _covs.clear();
+    _covs_inv.clear();
+    _covs_det.clear();
     for (int i = 0; i < _K; i++) {
         Vec3f mean(0.0, 0.0, 0.0);
         cv::Mat covMat(3, 3, CV_32FC1, cv::Scalar(0));
@@ -32,16 +49,20 @@ void GMM::calculateParm(int total_points, vector<vector<Vec3b>> cluster_sets) {
         //计算协方差
         for (int j = 0; j < cluster_sets[i].size(); j++) {
             cv::Vec3f diff = (Vec3f)cluster_sets[i][j] - mean;
-            cv::Mat diffMat = cv::Mat(diff).reshape(1, 3);
-            cv::Mat diffMatT;
-            cv::transpose(diffMat, diffMatT);
-            covMat += diffMat * diffMatT;
+            Mat mult = (cv::Mat_<float>(3,3) <<  diff[0]*diff[0], diff[0]*diff[1], diff[0]*diff[2],
+                                                            diff[1]*diff[0], diff[1]*diff[1], diff[1]*diff[2],
+                                                             diff[2]*diff[0], diff[2]*diff[1], diff[2]*diff[2]);
+            covMat += mult;
         }
+
         covMat /= (cluster_size - 1);
+
 
         _means.push_back(mean);
         _weights.push_back((float)cluster_size / (float)total_points);
         _covs.push_back(covMat);
+        _covs_inv.push_back(covMat.inv());
+        _covs_det.push_back(determinant(covMat));
     }
 }
 
@@ -88,7 +109,7 @@ int GMM::getRelatedK(Vec3b point){
     int resK = 0;
     double max_prob = 0;
     for(int k = 0; k < _K; k++){
-        double tmp_prob = calculatePointProbability(point,k);
+        double tmp_prob = calculatePointProbabilitySpeedVersion(point,k);
         if(tmp_prob > max_prob){
             max_prob = tmp_prob;
             resK = k;
