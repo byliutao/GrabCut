@@ -2,7 +2,7 @@
 
 #ifndef MAIN_SEGMENTATION_H
 #define MAIN_SEGMENTATION_H
-#define SHOW
+//#define SHOW
 #include <vector>
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -34,7 +34,7 @@ private:
 
     void learGMM(GMM &fgd, GMM &bgd, Mat &img_k);
 
-    void estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k);
+    void estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k, Mat &horizontal, Mat &vertical, Mat &leftOblique, Mat &rightOblique);
 
     void getFgdBgdKbyImgK(vector<int> &fgd_labels, vector<int> &bgd_labels, Mat &img_k);
 
@@ -47,6 +47,8 @@ private:
     void calculateBeta();
 
     void calculateK();
+
+    void calculateNlinkWeightMat(Mat &horizontal, Mat &vertical, Mat &leftOblique, Mat &rightOblique);
 
     double vFunction(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2);
 

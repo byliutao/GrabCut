@@ -60,7 +60,7 @@ void Segmentation::learGMM(GMM &fgd, GMM &bgd, Mat &img_k){
     bgd.update_parm(bgd_vec,bgd_labels);
 }
 
-void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
+void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k, Mat &horizontal, Mat &vertical, Mat &leftOblique, Mat &rightOblique){
     // according to the paper, V = P | {S, T}
     int nodes_num = _source_img.rows * _source_img.cols;
     // E = N | { {p,S} , {p,T} }
@@ -76,10 +76,8 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
         for (int j = 0; j < _source_img.cols; ++j) {
             Vec3b pixel = _source_img.at<cv::Vec3b>(i, j);
             uchar value_u = _T_U.at<uchar>(i,j);
-            int k = img_k.at<int>(i,j);
 
             int node_index = graph.add_node();
-
             //Set n-links
             if(isContainByImage(i-1,j-1)){
 
@@ -93,17 +91,20 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
                 leftPixel = _source_img.at<cv::Vec3b>(i, j-1);
                 upPixel = _source_img.at<cv::Vec3b>(i-1, j);
                 centerPixel = _source_img.at<cv::Vec3b>(i, j);
-
                 //(i,j) to (i-1,j-1)    V(or B in iccv01) function, according to the paper equation(11)
+//                double cap1 = (isSameLevel(centerPt, leftUpPt) ? 1.0 : 0.0) * rightOblique.at<double>(i,j);
                 double cap1 = vFunction(centerPt,leftUpPt,centerPixel,leftUpPixel);
                 graph.add_edge(node_index,node_index-_source_img.cols-1,cap1,cap1);
                 //(i-1,j) to (i-1,j-1)
+//                double cap2 = (isSameLevel(upPt, leftUpPt) ? 1.0 : 0.0) * horizontal.at<double>(i,j);
                 double cap2 = vFunction(upPt,leftUpPt,upPixel,leftUpPixel);
                 graph.add_edge(node_index-_source_img.cols,node_index-_source_img.cols-1,cap2,cap2);
                 //(i,j-1) to (i-1,j-1)
+//                double cap3 = (isSameLevel(leftPt, leftUpPt) ? 1.0 : 0.0) * vertical.at<double>(i,j);
                 double cap3 = vFunction(leftPt,leftUpPt,leftPixel,leftUpPixel);
                 graph.add_edge(node_index-1,node_index-_source_img.cols-1,cap3,cap3);
                 //(i,j-1) to (i-1,j)
+//                double cap4 = (isSameLevel(leftPt, upPt) ? 1.0 : 0.0) * leftOblique.at<double>(i,j);
                 double cap4 = vFunction(leftPt,upPt,leftPixel,upPixel);
                 graph.add_edge(node_index-1,node_index-_source_img.cols,cap4,cap4);
 
@@ -124,7 +125,6 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
 
             //Set t-links
             double cap_source = 0.0, cap_sink = 0.0;
-
             if(value_u == Background){
                 cap_sink = _K;
                 cap_source = 0;
@@ -140,12 +140,12 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
             }
             graph.add_tweights(node_index, cap_source, cap_sink);
             add_edge_num += 2;
+
         }
     }
 
     graph.maxflow();
 
-//    cout<<"preset_edges_num: "<<edges_num<<" real_add_edge: "<<add_edge_num<<endl;
     CV_Assert(edges_num == add_edge_num);
     int rows = _T_U.rows;
     int cols = _T_U.cols;
@@ -296,6 +296,44 @@ void Segmentation::calculateK(){
     _K = max_K + 1;
 }
 
+void Segmentation::calculateNlinkWeightMat(Mat &horizontal, Mat &vertical, Mat &leftOblique, Mat &rightOblique){
+    for (int i = 0; i < _source_img.rows; ++i) {
+        for (int j = 0; j < _source_img.cols; ++j) {
+            Vec3b pixel = _source_img.at<cv::Vec3b>(i, j);
+            uchar value_u = _T_U.at<uchar>(i,j);
+
+            //calculate n-links
+            if(isContainByImage(i-1,j-1)){
+                Vec3b leftPixel, upPixel, leftUpPixel, centerPixel;
+                leftUpPixel = _source_img.at<cv::Vec3b>(i-1, j-1);
+                leftPixel = _source_img.at<cv::Vec3b>(i, j-1);
+                upPixel = _source_img.at<cv::Vec3b>(i-1, j);
+                centerPixel = _source_img.at<cv::Vec3b>(i, j);
+                //(i,j) to (i-1,j-1)    V(or B in iccv01) function, according to the paper equation(11)
+                double cap1 = vFunction(Object,Object,centerPixel,leftUpPixel);
+                rightOblique.at<double>(i, j) = cap1;
+                //(i-1,j) to (i-1,j-1)
+                double cap2 = vFunction(Object,Object,upPixel,leftUpPixel);
+                horizontal.at<double>(i, j) = cap2;
+                //(i,j-1) to (i-1,j-1)
+                double cap3 = vFunction(Object,Object,leftPixel,leftUpPixel);
+                vertical.at<double>(i, j) = cap3;
+                //(i,j-1) to (i-1,j)
+                double cap4 = vFunction(Object,Object,leftPixel,upPixel);
+                leftOblique.at<double>(i, j) = cap4;
+            }
+            else{
+                horizontal.at<double>(i, j) = 0.0;
+                vertical.at<double>(i, j) = 0.0;
+                leftOblique.at<double>(i, j) = 0.0;
+                rightOblique.at<double>(i, j) = 0.0;
+            }
+
+        }
+    }
+
+}
+
 double Segmentation::vFunction(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2){
     return _gamma * (isSameLevel(pixelType1, pixelType2) ? 1.0 : 0.0) *
            exp(-1.0 * _beta * calculateSquareDis(pixelValue1, pixelValue2));
@@ -372,8 +410,12 @@ void Segmentation::iter(){
     vector<Vec3b> fgd_vec, bgd_vec;
     Mat img_k(_source_img.size(), CV_32SC1);
 
+    Mat horizontal(_source_img.size(), CV_64FC1);
+    Mat vertical(_source_img.size(), CV_64FC1);
+    Mat leftOblique(_source_img.size(), CV_64FC1);
+    Mat rightOblique(_source_img.size(), CV_64FC1);
     calculateBeta();
-//    calculateK();
+    calculateNlinkWeightMat(horizontal,vertical,leftOblique,rightOblique);
 
     getFgdBgdVecByTU(fgd_vec,bgd_vec);
     fgd.init_parm_by_KMeans(fgd_vec);
@@ -387,7 +429,7 @@ void Segmentation::iter(){
         double t2 = cv::getTickCount();
         learGMM(fgd,bgd,img_k);
         double t3 = cv::getTickCount();
-        estimateSeg(fgd,bgd,img_k);
+        estimateSeg(fgd,bgd,img_k,horizontal,vertical,leftOblique,rightOblique);
         double t4 = cv::getTickCount();
         cout<<"iter"<<i<<"  ";
         std::cout <<"setp1: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << " ";
