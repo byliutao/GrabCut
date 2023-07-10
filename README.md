@@ -15,9 +15,12 @@
 
 ## Reading Paper
 From the paper, we need to understand the entire workflow of the whole grabcut procedure and the algorithm it used.  
-After reading, Here are my brief conclusion: Given an RGB image, Firstly we need to seperated the roughly background and foreground by a rectangle which denote the initial foreground.
-
-
+After reading, Here are my brief conclusion: Given an RGB image, Firstly we need to seperated the roughly background and foreground by a rectangle which denote the initial foreground.  
+Secondly, the author use GMM model to describe the background and foreground colour point cluster distribution. To reflect how the current segmentation is fit into the ground true, 
+the paper gives an energy function, the penalties for assigning pixel to "foreground" or "background".  
+Thirdly, for minimizing the energy, it generates a graph, where each pixel represent a node , and its edges reveal the energy cost.
+It utilizes the min-cut algorithm to find a cut with the min energy value, and then use the cut generating new foreground and background, recalculating the GMM model's parameters, updating the graph's edges and doing this iteratively to
+achieve the best result of segmentation.
 
 
 
@@ -31,7 +34,7 @@ For the GMM part, what we need to do cover:
 1. init bgd and fgd GMM model's parameter(weight, means, covariance) by KMeans algorithm.
 2. calculate the K value for each pixel in the whole image
 3. update the bgd and fgd GMM model's parameter by the newly calculated K from step 2.
-
+4. generate a graph and do min-cut, the go back to step2
 
 ## Minimum Cut
 

@@ -5,9 +5,7 @@
 #include "GMM.h"
 double GMM::calculatePointProbability(const cv::Vec3b& point, int k)
 {
-    cv::Mat x = ( cv::Mat_<float>(1,3) << point[0], point[1], point[2] );
-    cv::Mat mean = ( cv::Mat_<float>(1, 3) << _means[k][0], _means[k][1], _means[k][2]);
-    cv::Mat diff = cv::Mat(x - mean);
+    cv::Mat diff = ( cv::Mat_<float>(1,3) << point[0] - _means[k][0], point[1] - _means[k][1], point[2] - _means[k][2]);
     cv::Mat diffT;
     cv::transpose(diff, diffT);
     cv::Mat exponent = -0.5 * diff * _covs[k].inv() * diffT;
@@ -107,7 +105,7 @@ double GMM::getWeightedProb(Vec3b point){
     return res;
 }
 
-void GMM::update_parm(vector<Vec3b> samples_vec, vector<int> &data_labels){
+void GMM::update_parm(const vector<Vec3b> &samples_vec, const vector<int> &data_labels){
     // 保存分类好的点集
     vector<vector<Vec3b>> cluster_sets;
     for(int i = 0; i < _K; i++){

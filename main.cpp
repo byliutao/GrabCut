@@ -10,6 +10,11 @@ Rect2d selection;
 bool isDragging = false;
 Mat image;
 
+const double super_parameter_lambada = 5.0; //decide the weight of Region and Boundary, set bigger then Region weighs more.
+const double super_parameter_gamma = 50.0;//vFunction coefficient, set bigger then Boundary weighs less
+const int super_parameter_iterTimes = 5;//decide the iterTime of loop
+const string test_image_name = "statue";
+
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
     if (event == EVENT_LBUTTONDOWN) {
@@ -59,12 +64,12 @@ Mat calcGrayHist(const Mat & image)
 }
 
 void grabcut_test(Mat &img, Rect2d &interst_area){
-    Segmentation segmentation(img,50.0,450.0,10);
+    Segmentation segmentation(img,super_parameter_gamma,super_parameter_lambada,super_parameter_iterTimes);
     segmentation.initByRect(interst_area);
     segmentation.iter();
     Mat fgd;
     segmentation.getFgdImg(fgd);
-    imshow("fgd",fgd);
+    imshow("my_grabcut_result",fgd);
     waitKey(0);
 }
 
@@ -75,24 +80,19 @@ void opencv_grabcut(Mat &img, Rect2d &roi){
 
     grabCut(img,mask,roi,bgdModel,fgdModel,1,GC_INIT_WITH_RECT);
 
-//    Mat mask_hist = calcGrayHist(mask);
-//    std::vector<int> array;
-//    for(int i = 0; i < mask_hist.cols; i++){
-//        array.push_back(mask_hist.at<int>(0,i));
-//    }
 
     bg_mask = (mask==1)+(mask==3);
     fg_mask = (mask==0)+(mask==2);
     img.copyTo(result,bg_mask);
-    imshow("opencv_grabcut_mask",bg_mask);
+//    imshow("opencv_grabcut_mask",bg_mask);
     imshow("opencv_grabcut_result",result);
 //    waitKey(0);
     return;
 }
 
 int main(){
-    image = imread("/home/nuc/workspace/GrabCut/data/statue.jpg");
-    resize(image,image,Size(image.cols/2,image.rows/2));
+    image = imread("/home/nuc/workspace/GrabCut/data/"+test_image_name+".jpg");
+    resize(image,image,Size(600,400));
     Mat img = image.clone();
     if (image.empty()) {
         std::cout << "无法读取图像文件" << std::endl;

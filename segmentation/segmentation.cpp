@@ -38,20 +38,10 @@ void Segmentation::assignGMM(GMM &fgd, GMM &bgd, Mat &img_k){
             if(value_u == Object || value_u == UnknownObject){
                 ptr_c[j] = Vec3b(k*50 % 255,k*70 % 255,0);
                 ptr_m[j] = Vec3b(value_u*20 % 255,value_u*30 % 255,  255);
-//                if(value_u == Object){
-//                    ptr_m[j] = Vec3b(255, 255,  255);
-//                }else{
-//                    ptr_m[j] = Vec3b(0,255,0);
-//                }
             }
             else{
                 ptr_c[j] = Vec3b(k*50 % 255,k*70 % 255,255);
                 ptr_m[j] = Vec3b(value_u*50 % 255,value_u*70 % 255,  0);
-//                if(value_u == Background){
-//                    ptr_m[j] = Vec3b(0, 0,  255);
-//                }else{
-//                    ptr_m[j] = Vec3b(255,0,0);
-//                }
             }
 
         }
@@ -91,80 +81,75 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
 
             int node_index = graph.add_node();
 
-            pair<Vec3b,uchar> center(pixel,value_u);
-            Vec2i center_location(i,j);
+            pixelType leftPt, upPt, leftUpPt, centerPt;
+            Vec3b leftPixel, upPixel, leftUpPixel, centerPixel;
+            leftUpPt = (pixelType)_T_U.at<uchar>(i-1,j-1);
+            leftPt = (pixelType)_T_U.at<uchar>(i,j-1);
+            upPt = (pixelType)_T_U.at<uchar>(i-1,j);
+            centerPt = (pixelType)_T_U.at<uchar>(i,j);
+            leftUpPixel = _source_img.at<cv::Vec3b>(i-1, j-1);
+            leftPixel = _source_img.at<cv::Vec3b>(i, j-1);
+            upPixel = _source_img.at<cv::Vec3b>(i-1, j);
+            centerPixel = _source_img.at<cv::Vec3b>(i, j);
 
             if(isContainByImage(i-1,j-1)){
-                //(i,j) to (i-1,j-1)
-                double cap1 = _gamma * cv::norm(Vec2i(i-1,j-1),Vec2i(i,j)) *
-                             exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j-1),_source_img.at<cv::Vec3b>(i, j))) *
-                        (((isSameLevel((pixelType)_T_U.at<uchar>(i-1,j-1),(pixelType)_T_U.at<uchar>(i,j)))) ? 1.0 : 0.0);
+                //(i,j) to (i-1,j-1)    V(or B in iccv01) function, according to the paper equation(11)
+                double cap1 = vFunction(centerPt,leftUpPt,centerPixel,leftUpPixel);
                 graph.add_edge(node_index,node_index-_source_img.cols-1,cap1,cap1);
                 //(i-1,j) to (i-1,j-1)
-                double cap2 = _gamma * cv::norm(Vec2i(i-1,j-1),Vec2i(i-1,j)) *
-                              exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j-1),_source_img.at<cv::Vec3b>(i-1, j))) *
-                        (((isSameLevel((pixelType)_T_U.at<uchar>(i-1,j-1),(pixelType)_T_U.at<uchar>(i-1,j)))) ? 1.0 : 0.0);
+                double cap2 = vFunction(upPt,leftUpPt,upPixel,leftUpPixel);
                 graph.add_edge(node_index-_source_img.cols,node_index-_source_img.cols-1,cap2,cap2);
                 //(i,j-1) to (i-1,j-1)
-                double cap3 = _gamma * cv::norm(Vec2i(i-1,j-1),Vec2i(i,j-1)) *
-                              exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j-1),_source_img.at<cv::Vec3b>(i, j-1))) *
-                        (((isSameLevel((pixelType)_T_U.at<uchar>(i-1,j-1),(pixelType)_T_U.at<uchar>(i,j-1)))) ? 1.0 : 0.0);
+                double cap3 = vFunction(leftPt,leftUpPt,leftPixel,leftUpPixel);
                 graph.add_edge(node_index-1,node_index-_source_img.cols-1,cap3,cap3);
                 //(i,j-1) to (i-1,j)
-                double cap4 = _gamma * cv::norm(Vec2i(i-1,j),Vec2i(i,j-1)) *
-                              exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j),_source_img.at<cv::Vec3b>(i, j-1))) *
-                        (((isSameLevel((pixelType)_T_U.at<uchar>(i-1,j),(pixelType)_T_U.at<uchar>(i,j-1)))) ? 1.0 : 0.0);
+                double cap4 = vFunction(leftPt,upPt,leftPixel,upPixel);
                 graph.add_edge(node_index-1,node_index-_source_img.cols,cap4,cap4);
 
                 add_edge_num += 4;
                 if(j+1 == _source_img.cols){
-                    //(i-1,j) to (i,j)
-                    double cap5 = _gamma * cv::norm(Vec2i(i-1,j),Vec2i(i,j)) *
-                                  exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i-1, j),_source_img.at<cv::Vec3b>(i, j))) *
-                            (((isSameLevel((pixelType)_T_U.at<uchar>(i-1,j),(pixelType)_T_U.at<uchar>(i,j)))) ? 1.0 : 0.0);
+                    //i,j) to ((i-1,j)
+                    double cap5 = vFunction(upPt,centerPt,upPixel,centerPixel);
                     graph.add_edge(node_index,node_index-_source_img.cols,cap5,cap5);
                     add_edge_num ++;
                 }
                 if(i+1 == _source_img.rows){
-                    //(i,j-1) to (i,j)
-                    double cap6 = _gamma * cv::norm(Vec2i(i,j-1),Vec2i(i,j)) *
-                                  exp(-1.0 * _beta * cv::norm(_source_img.at<cv::Vec3b>(i, j-1),_source_img.at<cv::Vec3b>(i, j))) *
-                            (((isSameLevel((pixelType)_T_U.at<uchar>(i,j-1),(pixelType)_T_U.at<uchar>(i,j)))) ? 1.0 : 0.0);
+                    //(i,j) to (i,j-1)
+                    double cap6 = vFunction(leftPt,centerPt,leftPixel,centerPixel);
                     graph.add_edge(node_index,node_index-1,cap6,cap6);
                     add_edge_num ++;
                 }
             }
 
-            double W_source = 0.0, W_sink = 0.0;
+            double cap_source = 0.0, cap_sink = 0.0;
             vector<pair<Vec3b,uchar>> neighbors;
-            vector<Vec2i> neighbors_location;
+            pair<Vec3b,uchar> center(pixel,value_u);
 
             for(int n = i - 1; n <= i + 1; n++){
                 for(int m = j - 1; m <= j + 1; m++){
                     if(isContainByImage(n,m) && (n != i || m != j)){
                         neighbors.emplace_back(_source_img.at<cv::Vec3b>(n, m),_T_U.at<uchar>(n,m));
-                        neighbors_location.emplace_back(n,m);
                     }
                 }
             }
-            double maxCap = getMaxCap(neighbors_location, neighbors, center_location, center);
+            double maxCap = getMaxCap(neighbors, center);
 
             if(value_u == Background){
-                W_sink = 1 + maxCap;
-//                W_sink = _lambda;
-                W_source = 0;
+                cap_sink = 1 + maxCap;
+                cap_source = 0;
             }
             else if(value_u == Object){
-                W_sink = 0;
-                W_source = 1 + maxCap;
-//                W_source = _lambda;
+                cap_sink = 0;
+                cap_source = 1 + maxCap;
             }
             else{
-                W_sink = -log(fgd.getWeightedProb(pixel))*_lambda;
-                W_source = -log(bgd.getWeightedProb(pixel))*_lambda;
+                //U(or R in iccv01) function, according to the paper equation(8)
+                cap_sink = -log(fgd.getWeightedProb(pixel));
+                cap_source = -log(bgd.getWeightedProb(pixel));
             }
-
-            graph.add_tweights(node_index,W_source,W_sink);
+            cap_sink *= _lambda;
+            cap_source *= _lambda;
+            graph.add_tweights(node_index, cap_source, cap_sink);
             add_edge_num += 2;
         }
     }
@@ -181,6 +166,7 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
         uchar* ptr = _T_U.ptr<uchar>(i);
         for (int j = 0; j < cols; j++) {
             uchar& value_u = ptr[j];
+//            if(1){
             if(value_u == UnknownBackground || value_u == UnknownObject){
                 if(graph.what_segment(i*_source_img.cols+j) == Graph<double, double, double>::SOURCE){
                     value_u = UnknownObject;
@@ -292,16 +278,25 @@ void Segmentation::calculateBeta(){
     _beta = 1.0 / ((totalDiff / total_num) * 2);
 }
 
-double Segmentation::getMaxCap(const vector<Vec2i> neighbors_location, const vector<pair<Vec3b,uchar>> &neighbors, const Vec2i center_location, const pair<Vec3b,uchar> &center){
+double Segmentation::vFunction(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2){
+    return _gamma * (isSameLevel(pixelType1, pixelType2) ? 1.0 : 0.0) *
+           exp(-1.0 * _beta * cv::norm(pixelValue1, pixelValue2));
+}
+
+double Segmentation::vFunction1(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2, Vec2i position1, Vec2i position2){
+    return _gamma * (isSameLevel(pixelType1, pixelType2) ? 1.0 : 0.0) *
+            cv::norm(position1,position2) *
+            exp(-1.0 * _beta * cv::norm(pixelValue1, pixelValue2));
+}
+
+
+double Segmentation::getMaxCap(const vector<pair<Vec3b,uchar>> &neighbors,const pair<Vec3b,uchar> &center){
     double maxCap = 0;
     for(int i = 0; i < neighbors.size(); i++){
         double cap = 0;
-        Vec2i location = neighbors_location[i];
         pair<Vec3b,uchar> neighbor = neighbors[i];
 
-        cap = _gamma * cv::norm(location,center_location) *
-              exp(-1.0 * _beta * cv::norm(neighbor.first,center.first)) *
-              ((isSameLevel((pixelType)neighbor.second,(pixelType)center.second)) ? 1.0 : 0.0);
+        cap = vFunction((pixelType)neighbor.second,(pixelType)center.second,neighbor.first,center.first);
         if(cap > maxCap) maxCap = cap;
     }
     return maxCap;
@@ -337,12 +332,12 @@ void Segmentation::initByRect(cv::Rect2d rect) {
     for (int i = 0; i < rows; i++) {
         uchar* ptr = _T_U.ptr<uchar>(i);
         for (int j = 0; j < cols; j++) {
-            uchar& pixel = ptr[j];
+            uchar& value_u = ptr[j];
             if(j>=rect.x && j<=(rect.x+rect.width) && i>=rect.y && i<=(rect.y+rect.height)){
-                pixel = UnknownObject;
+                value_u = UnknownObject;
             }
             else{
-                pixel = Background;
+                value_u = Background;
             }
         }
     }
@@ -367,6 +362,7 @@ void Segmentation::iter(){
         double t3 = cv::getTickCount();
         estimateSeg(fgd,bgd,img_k);
         double t4 = cv::getTickCount();
+        cout<<"iter"<<i<<"   ";
         std::cout <<"setp1: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << " ";
         std::cout <<"setp2: "<< (t3 - t2) / cv::getTickFrequency() * 1000 << " ";
         std::cout <<"setp3: "<< (t4 - t3) / cv::getTickFrequency() * 1000 << " ";

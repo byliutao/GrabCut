@@ -32,7 +32,7 @@ public:
 
     double getWeightedProb(Vec3b point);
 
-    void update_parm(vector<Vec3b> samples_vec, vector<int> &data_labels);
+    void update_parm(const vector<Vec3b> &samples_vec, const vector<int> &data_labels);
 };
 
 

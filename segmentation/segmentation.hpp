@@ -2,7 +2,7 @@
 
 #ifndef MAIN_SEGMENTATION_H
 #define MAIN_SEGMENTATION_H
-//#define SHOW
+#define SHOW
 #include <vector>
 #include <iostream>
 #include <opencv2/opencv.hpp>
@@ -45,7 +45,11 @@ private:
 
     void calculateBeta();
 
-    double getMaxCap(const vector<Vec2i> neighbors_location, const vector<pair<Vec3b,uchar>> &neighbors, const Vec2i center_location, const pair<Vec3b,uchar> &center);
+    double vFunction(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2);
+
+    double vFunction1(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2, Vec2i position1, Vec2i position2);
+
+    double getMaxCap(const vector<pair<Vec3b,uchar>> &neighbors, const pair<Vec3b,uchar> &center);
 
     bool isSameLevel(pixelType pixelType1, pixelType pixelType2);
 public:
