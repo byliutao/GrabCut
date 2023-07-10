@@ -34,12 +34,24 @@ For the GMM part, what we need to do cover:
 1. init bgd and fgd GMM model's parameter(weight, means, covariance) by KMeans algorithm.
 2. calculate the K value for each pixel in the whole image
 3. update the bgd and fgd GMM model's parameter by the newly calculated K from step 2.
-4. generate a graph and do min-cut, the go back to step2
 
 ## Minimum Cut
+Minimum cut is an algorithm to separate a graph's nodes into to two categories, which have the minimum sum of cut edges' weight.  
+The paper use the minimum cut algorithm as a tool to minimize the energy function. It sets each graph's node with two kind of edges, 
+t-links(terminal-links) and n-links(neighbor-links), and use the U(region function) and V(boundary function) 
+to get the weights of two links' value.  
+After We define a graph and it's edges, we can get the current minimum cut, and get the region of new bgd and fgd.  
+For the Minimum Cut part, what we need to do cover:
+1. calculate the const beta and K value.
+2. generate a graph by the given GMM model and bgd_fgd_distribution(mask).
+3. do max-flow to get the minimum cut.
 
-
-
+## Combine the GMM and Minimum cut
+1. init GMM's and Minimum-cut's parameters.
+2. Assign GMM components to pixels.
+3. Learning GMM parameters from data.
+4. Estimate segmentation.
+5. Repeat from step2, until convergence. 
 
 ## install dependence
 ### install opencv

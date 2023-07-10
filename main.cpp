@@ -10,10 +10,12 @@ Rect2d selection;
 bool isDragging = false;
 Mat image;
 
-const double super_parameter_lambada = 5.0; //decide the weight of Region and Boundary, set bigger then Region weighs more.
-const double super_parameter_gamma = 50.0;//vFunction coefficient, set bigger then Boundary weighs less
+//t_links coefficient, set bigger then Region weighs more.
+const double super_parameter_lambada = 5.0;
+//vFunction(n_links and some t_links use) coefficient, also the max_value of vFunction, set bigger then Boundary weighs more
+const double super_parameter_gamma = 50.0;
 const int super_parameter_iterTimes = 3;//decide the iterTime of loop
-const string test_image_name = "statue";
+const string test_image_name = "people1";
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
@@ -105,14 +107,14 @@ int main(){
     namedWindow("Image");
 
     // 设置鼠标事件回调函数的参数
-    Rect2d selectedRect;
+    Rect2d selectedRect(0,0,0,0);
     setMouseCallback("Image", mouseCallback, &selectedRect);
 
     // 显示图像并等待选择矩形
     imshow("Image", image);
     waitKey(0);
 
-
+    while (selectedRect.x == 0);
     // 打印选择的矩形坐标
     std::cout << "Selected Rect: (" << selectedRect.x << ", " << selectedRect.y << ", "
               << selectedRect.width << ", " << selectedRect.height << ")" << std::endl;

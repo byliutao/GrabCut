@@ -28,6 +28,7 @@ private:
     double _gamma;
     double _lambda;
     double _beta;
+    double _K;
 
     void assignGMM(GMM &fgd, GMM &bgd, Mat &img_k);
 
@@ -41,15 +42,19 @@ private:
 
     void getFgdBgdInfo(vector<Vec3b> &fgd_vec, vector<Vec3b> &bgd_vec, vector<int> &fgd_labels, vector<int> &bgd_labels, Mat &img_k);
 
-    bool isContainByImage(int i, int j);
+    bool isContainByImage(int i, int j) const;
 
     void calculateBeta();
+
+    void calculateK();
 
     double vFunction(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2);
 
     double vFunction1(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2, Vec2i position1, Vec2i position2);
 
-    double getMaxCap(const vector<pair<Vec3b,uchar>> &neighbors, const pair<Vec3b,uchar> &center);
+    double getTotalCap(const vector<pair<Vec3b,uchar>> &neighbors, const pair<Vec3b,uchar> &center);
+
+    double calculateSquareDis(Vec3b p1, Vec3b p2);
 
     bool isSameLevel(pixelType pixelType1, pixelType pixelType2);
 public:

@@ -68,7 +68,6 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
                     + (_source_img.rows - 1) * _source_img.cols
                     + (_source_img.cols - 1) * _source_img.rows
                     + (_source_img.rows - 1) * (_source_img.cols - 1) * 2;
-    int other_edges_num =  2 * (4 * nodes_num - 3 * _source_img.cols - 3 * _source_img.rows + 2);
     Graph<double,double,double> graph(nodes_num,edges_num);
 
     int add_edge_num = 0;
@@ -81,18 +80,20 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
 
             int node_index = graph.add_node();
 
-            pixelType leftPt, upPt, leftUpPt, centerPt;
-            Vec3b leftPixel, upPixel, leftUpPixel, centerPixel;
-            leftUpPt = (pixelType)_T_U.at<uchar>(i-1,j-1);
-            leftPt = (pixelType)_T_U.at<uchar>(i,j-1);
-            upPt = (pixelType)_T_U.at<uchar>(i-1,j);
-            centerPt = (pixelType)_T_U.at<uchar>(i,j);
-            leftUpPixel = _source_img.at<cv::Vec3b>(i-1, j-1);
-            leftPixel = _source_img.at<cv::Vec3b>(i, j-1);
-            upPixel = _source_img.at<cv::Vec3b>(i-1, j);
-            centerPixel = _source_img.at<cv::Vec3b>(i, j);
-
+            //Set n-links
             if(isContainByImage(i-1,j-1)){
+
+                pixelType leftPt, upPt, leftUpPt, centerPt;
+                Vec3b leftPixel, upPixel, leftUpPixel, centerPixel;
+                leftUpPt = (pixelType)_T_U.at<uchar>(i-1,j-1);
+                leftPt = (pixelType)_T_U.at<uchar>(i,j-1);
+                upPt = (pixelType)_T_U.at<uchar>(i-1,j);
+                centerPt = (pixelType)_T_U.at<uchar>(i,j);
+                leftUpPixel = _source_img.at<cv::Vec3b>(i-1, j-1);
+                leftPixel = _source_img.at<cv::Vec3b>(i, j-1);
+                upPixel = _source_img.at<cv::Vec3b>(i-1, j);
+                centerPixel = _source_img.at<cv::Vec3b>(i, j);
+
                 //(i,j) to (i-1,j-1)    V(or B in iccv01) function, according to the paper equation(11)
                 double cap1 = vFunction(centerPt,leftUpPt,centerPixel,leftUpPixel);
                 graph.add_edge(node_index,node_index-_source_img.cols-1,cap1,cap1);
@@ -121,34 +122,22 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
                 }
             }
 
+            //Set t-links
             double cap_source = 0.0, cap_sink = 0.0;
-            vector<pair<Vec3b,uchar>> neighbors;
-            pair<Vec3b,uchar> center(pixel,value_u);
-
-            for(int n = i - 1; n <= i + 1; n++){
-                for(int m = j - 1; m <= j + 1; m++){
-                    if(isContainByImage(n,m) && (n != i || m != j)){
-                        neighbors.emplace_back(_source_img.at<cv::Vec3b>(n, m),_T_U.at<uchar>(n,m));
-                    }
-                }
-            }
-            double maxCap = getMaxCap(neighbors, center);
 
             if(value_u == Background){
-                cap_sink = 1 + maxCap;
+                cap_sink = _K;
                 cap_source = 0;
             }
             else if(value_u == Object){
                 cap_sink = 0;
-                cap_source = 1 + maxCap;
+                cap_source = _K;
             }
             else{
                 //U(or R in iccv01) function, according to the paper equation(8)
-                cap_sink = -log(fgd.getWeightedProb(pixel));
-                cap_source = -log(bgd.getWeightedProb(pixel));
+                cap_sink = -log(fgd.getWeightedProb(pixel)) * _lambda;
+                cap_source = -log(bgd.getWeightedProb(pixel)) * _lambda;
             }
-            cap_sink *= _lambda;
-            cap_source *= _lambda;
             graph.add_tweights(node_index, cap_source, cap_sink);
             add_edge_num += 2;
         }
@@ -156,8 +145,8 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k){
 
     graph.maxflow();
 
-//    cout<<"preset_edges_num: "<<edges_num<<" graph_add_edge: "<<add_edge_num<<" other_edges_num: "<<other_edges_num<<endl;
-
+//    cout<<"preset_edges_num: "<<edges_num<<" real_add_edge: "<<add_edge_num<<endl;
+    CV_Assert(edges_num == add_edge_num);
     int rows = _T_U.rows;
     int cols = _T_U.cols;
 
@@ -244,63 +233,98 @@ void Segmentation::getFgdBgdInfo(vector<Vec3b> &fgd_vec, vector<Vec3b> &bgd_vec,
     }
 }
 
-bool Segmentation::isContainByImage(int i, int j){
+bool Segmentation::isContainByImage(int i, int j) const{
     int imageWidth = _source_img.cols;
     int imageHeight = _source_img.rows;
 
-    return i >= 0 && i < imageWidth && j >= 0 && j < imageHeight;
+    return i >= 0 && i < imageHeight && j >= 0 && j < imageWidth;
 
 }
 
+//according to the equation (5)
 void Segmentation::calculateBeta(){
     double totalDiff = 0;
     int total_num = (_source_img.rows - 1) * _source_img.cols
                     + (_source_img.cols - 1) * _source_img.rows
                     + (_source_img.rows - 1) * (_source_img.cols - 1) * 2;
+    int add_num = 0;
     for (int i = 0; i < _source_img.rows; ++i) {
         for (int j = 0; j < _source_img.cols; ++j) {
             // 访问像素值
             cv::Vec3b pixel = _source_img.at<cv::Vec3b>(i, j);
             if(isContainByImage(i,j+1)){
-                totalDiff += norm(pixel,_source_img.at<cv::Vec3b>(i,j+1));
+                totalDiff += calculateSquareDis(pixel,_source_img.at<cv::Vec3b>(i,j+1));
             }
             if(isContainByImage(i+1,j)){
-                totalDiff += norm(pixel,_source_img.at<cv::Vec3b>(i+1,j));
+                totalDiff += calculateSquareDis(pixel,_source_img.at<cv::Vec3b>(i+1,j));
             }
             if(isContainByImage(i+1,j+1)){
-                totalDiff += norm(pixel,_source_img.at<cv::Vec3b>(i+1,j+1));
+                totalDiff += calculateSquareDis(pixel,_source_img.at<cv::Vec3b>(i+1,j+1));
             }
             if(isContainByImage(i+1,j) && isContainByImage(i,j+1)){
-                totalDiff += norm(_source_img.at<cv::Vec3b>(i+1,j),_source_img.at<cv::Vec3b>(i,j+1));
+                totalDiff += calculateSquareDis(_source_img.at<cv::Vec3b>(i+1,j),_source_img.at<cv::Vec3b>(i,j+1));
             }
         }
     }
-    _beta = 1.0 / ((totalDiff / total_num) * 2);
+    double expectation_diff = totalDiff / (double)total_num;
+    _beta = 1.0 / ((expectation_diff) * 2);
+}
+
+//according to essay iccv01.pdf
+void Segmentation::calculateK(){
+    double max_K = 0;
+    for (int i = 0; i < _source_img.rows; ++i) {
+        for (int j = 0; j < _source_img.cols; ++j) {
+            Vec3b pixel = _source_img.at<cv::Vec3b>(i, j);
+            uchar value_u = _T_U.at<uchar>(i,j);
+            vector<pair<Vec3b,uchar>> neighbors;
+            pair<Vec3b,uchar> center(pixel,value_u);
+
+            for(int n = i - 1; n <= i + 1; n++){
+                for(int m = j - 1; m <= j + 1; m++){
+                    if(isContainByImage(n,m) && (n != i || m != j)){
+                        neighbors.emplace_back(_source_img.at<cv::Vec3b>(n, m),_T_U.at<uchar>(n,m));
+                    }
+                }
+            }
+            double currentTotalCap = getTotalCap(neighbors, center);
+            if(currentTotalCap > max_K){
+                max_K = currentTotalCap;
+            }
+        }
+    }
+    _K = max_K + 1;
 }
 
 double Segmentation::vFunction(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2){
     return _gamma * (isSameLevel(pixelType1, pixelType2) ? 1.0 : 0.0) *
-           exp(-1.0 * _beta * cv::norm(pixelValue1, pixelValue2));
+           exp(-1.0 * _beta * calculateSquareDis(pixelValue1, pixelValue2));
 }
 
 double Segmentation::vFunction1(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2, Vec2i position1, Vec2i position2){
     return _gamma * (isSameLevel(pixelType1, pixelType2) ? 1.0 : 0.0) *
-            cv::norm(position1,position2) *
-            exp(-1.0 * _beta * cv::norm(pixelValue1, pixelValue2));
+            ( 1.0 / cv::norm(position1,position2)) *
+            exp(-1.0 * _beta * calculateSquareDis(pixelValue1, pixelValue2));
 }
 
 
-double Segmentation::getMaxCap(const vector<pair<Vec3b,uchar>> &neighbors,const pair<Vec3b,uchar> &center){
-    double maxCap = 0;
+double Segmentation::getTotalCap(const vector<pair<Vec3b,uchar>> &neighbors, const pair<Vec3b,uchar> &center){
+    double totalCap = 0;
     for(int i = 0; i < neighbors.size(); i++){
         double cap = 0;
         pair<Vec3b,uchar> neighbor = neighbors[i];
 
         cap = vFunction((pixelType)neighbor.second,(pixelType)center.second,neighbor.first,center.first);
-        if(cap > maxCap) maxCap = cap;
+        totalCap += cap;
     }
-    return maxCap;
+    return totalCap;
 }
+
+double Segmentation::calculateSquareDis(Vec3b p1, Vec3b p2){
+    double res = (p1[0]-p2[0])*(p1[0]-p2[0]) + (p1[1]-p2[1])*(p1[1]-p2[1]) + (p1[2]-p2[2])*(p1[2]-p2[2]);
+    return res;
+}
+
 
 bool Segmentation::isSameLevel(pixelType pixelType1, pixelType pixelType2){
     if((pixelType1 == Background | pixelType1 == UnknownBackground) &&
@@ -320,7 +344,6 @@ Segmentation::Segmentation(Mat &source_img, double gamma, double lambda, int ite
     _gamma = gamma;
     _lambda = lambda;
     _iter_times = iter_times;
-    calculateBeta();
 }
 
 void Segmentation::initByRect(cv::Rect2d rect) {
@@ -349,9 +372,13 @@ void Segmentation::iter(){
     vector<Vec3b> fgd_vec, bgd_vec;
     Mat img_k(_source_img.size(), CV_32SC1);
 
+    calculateBeta();
+//    calculateK();
+
     getFgdBgdVecByTU(fgd_vec,bgd_vec);
     fgd.init_parm_by_KMeans(fgd_vec);
     bgd.init_parm_by_KMeans(bgd_vec);
+    calculateK();
 
 
     for(int i = 0; i < _iter_times; i++){
@@ -362,7 +389,7 @@ void Segmentation::iter(){
         double t3 = cv::getTickCount();
         estimateSeg(fgd,bgd,img_k);
         double t4 = cv::getTickCount();
-        cout<<"iter"<<i<<"   ";
+        cout<<"iter"<<i<<"  ";
         std::cout <<"setp1: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << " ";
         std::cout <<"setp2: "<< (t3 - t2) / cv::getTickFrequency() * 1000 << " ";
         std::cout <<"setp3: "<< (t4 - t3) / cv::getTickFrequency() * 1000 << " ";
