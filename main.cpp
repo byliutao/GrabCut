@@ -10,14 +10,14 @@ Rect2d selection;
 bool isDragging = false;
 Mat image;
 
-//t_links coefficient, set bigger then Region weighs more.
-const double super_parameter_lambada = 5.0;
+//t_links coefficient, set bigger then Region weighs more, it should be 1.0 normally.
+const double super_parameter_lambada = 1.0;
 //vFunction(n_links and some t_links use) coefficient, also the max_value of vFunction, set bigger then Boundary weighs more
 const double super_parameter_gamma = 50.0;
 //decide the maxIterTime of loop
 const int super_parameter_maxIterTimes = 40;
 //test image name
-const string test_image_name = "bird";
+const string test_image_name = "car";
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {

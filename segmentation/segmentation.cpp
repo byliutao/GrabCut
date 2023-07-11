@@ -92,43 +92,39 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k, Mat &horizontal, 
                 centerPixel = _source_img.at<cv::Vec3b>(i, j);
 
                 //(i,j) to (i-1,j-1)    V(or B in iccv01) function, according to the paper equation(11)
-                double cap1 = (isSameLevel(centerPt, leftUpPt) ? 1.0 : 0.0) * rightOblique.at<double>(i,j);
+                double cap1 = rightOblique.at<double>(i,j);
+//                double cap1 = (isSameLevel(centerPt, leftUpPt) ? 1.0 : 0.0) * rightOblique.at<double>(i,j);
 //                double cap1 = vFunction(centerPt,leftUpPt,centerPixel,leftUpPixel);
                 graph.add_edge(node_index,node_index-_source_img.cols-1,cap1,cap1);
 
                 //(i-1,j) to (i-1,j-1)
-                double cap2 = (isSameLevel(upPt, leftUpPt) ? 1.0 : 0.0) * horizontal.at<double>(i,j);
+                double cap2 = horizontal.at<double>(i,j);
+//                double cap2 = (isSameLevel(upPt, leftUpPt) ? 1.0 : 0.0) * horizontal.at<double>(i,j);
 //                double cap2 = vFunction(upPt,leftUpPt,upPixel,leftUpPixel);
                 graph.add_edge(node_index-_source_img.cols,node_index-_source_img.cols-1,cap2,cap2);
 
                 //(i,j-1) to (i-1,j-1)
-                double cap3 = (isSameLevel(leftPt, leftUpPt) ? 1.0 : 0.0) * vertical.at<double>(i,j);
+                double cap3 = vertical.at<double>(i,j);
+//                double cap3 = (isSameLevel(leftPt, leftUpPt) ? 1.0 : 0.0) * vertical.at<double>(i,j);
 //                double cap3 = vFunction(leftPt,leftUpPt,leftPixel,leftUpPixel);
                 graph.add_edge(node_index-1,node_index-_source_img.cols-1,cap3,cap3);
 
                 //(i,j-1) to (i-1,j)
-                double cap4 = (isSameLevel(leftPt, upPt) ? 1.0 : 0.0) * leftOblique.at<double>(i,j);
+                double cap4 =leftOblique.at<double>(i,j);
+//                double cap4 = (isSameLevel(leftPt, upPt) ? 1.0 : 0.0) * leftOblique.at<double>(i,j);
 //                double cap4 = vFunction(leftPt,upPt,leftPixel,upPixel);
                 graph.add_edge(node_index-1,node_index-_source_img.cols,cap4,cap4);
 
                 add_edge_num += 4;
                 if(j+1 == _source_img.cols){
                     //i,j) to ((i-1,j)
-                    double t1 = cv::getTickCount();
-                    double cap5 = vFunction(upPt,centerPt,upPixel,centerPixel);
-                    double t2 = cv::getTickCount();
+                    double cap5 = vFunction(Object,Object,upPixel,centerPixel);
                     graph.add_edge(node_index,node_index-_source_img.cols,cap5,cap5);
-                    double t3 = cv::getTickCount();
-                    double cap_ = (isSameLevel(leftPt, upPt) ? 1.0 : 0.0) * leftOblique.at<double>(i,j);
-                    double t4 = cv::getTickCount();
-//                    std::cout <<"time: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << "ms";
-//                    std::cout <<" "<< (t3 - t2) / cv::getTickFrequency() * 1000 << "ms";
-//                    std::cout <<" "<< (t4 - t3) / cv::getTickFrequency() * 1000 << "ms" << endl;
                     add_edge_num ++;
                 }
                 if(i+1 == _source_img.rows){
                     //(i,j) to (i,j-1)
-                    double cap6 = vFunction(leftPt,centerPt,leftPixel,centerPixel);
+                    double cap6 = vFunction(Object,Object,leftPixel,centerPixel);
                     graph.add_edge(node_index,node_index-1,cap6,cap6);
                     add_edge_num ++;
                 }
@@ -357,7 +353,7 @@ double Segmentation::vFunction(pixelType pixelType1, pixelType pixelType2, Vec3b
 }
 
 double Segmentation::vFunction1(pixelType pixelType1, pixelType pixelType2, Vec3b pixelValue1, Vec3b pixelValue2, Vec2i position1, Vec2i position2){
-    return _gamma * (isSameLevel(pixelType1, pixelType2) ? 1.0 : 0.0) *
+    return _gamma * (!isSameLevel(pixelType1, pixelType2) ? 1.0 : 0.0) *
             ( 1.0 / cv::norm(position1,position2)) *
             exp(-1.0 * _beta * calculateSquareDis(pixelValue1, pixelValue2));
 }
@@ -441,23 +437,16 @@ void Segmentation::iter(){
     bgd.init_parm_by_KMeans(bgd_vec);
     calculateK();
 
+    double t1 = cv::getTickCount();
     int i = 0;
     while(i < _max_iter_times && !_early_stop_flag){
-        double t1 = cv::getTickCount();
         assignGMM(fgd,bgd,img_k);
-        double t2 = cv::getTickCount();
         learGMM(fgd,bgd,img_k);
-        double t3 = cv::getTickCount();
         estimateSeg(fgd,bgd,img_k,horizontal,vertical,leftOblique,rightOblique);
-        double t4 = cv::getTickCount();
         i++;
-        cout<<"iter"<<i<<"  ";
-        std::cout <<"setp1: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << " ";
-        std::cout <<"setp2: "<< (t3 - t2) / cv::getTickFrequency() * 1000 << " ";
-        std::cout <<"setp3: "<< (t4 - t3) / cv::getTickFrequency() * 1000 << " ";
-        std::cout <<"total_consume_time: "<< (t4 - t1) / cv::getTickFrequency() * 1000 << "ms ";
-        std::cout << std::endl;
     }
+    double t2 = cv::getTickCount();
+    std::cout <<"my_consume_time: "<< (t2 - t1) / cv::getTickFrequency() * 1000 << "ms "<< std::endl;
 }
 
 void Segmentation::getFgdImg(Mat &img){

@@ -14,11 +14,9 @@
 7.  对于一个400*600的图像，这个程序运行时间通常是1s以内（实现的好的话，0.1s左右也很正常）。如果你的程序运行时间明显过长，请认真优化。注意测量程序执行时间请用release模式（显示，实际运行等场合用的），而不是debug模式（调试程序用的，经常比release模式慢10倍左右）。
 
 ## Result Comparison (Opencv grabcut and my grabcut)
-![res1.png](data%2Fres_img%2Fres1.png)
-![res2.jpg](data%2Fres_img%2Fres2.jpg)
-![res3.jpg](data%2Fres_img%2Fres3.jpg)
-It seems my implementation has better ability to reserve the object's detail than opencv's;  
-
+![res1.png](data%2Fres_img%2Fres1.png)  
+![res2.png](data%2Fres_img%2Fres2.png)
+![res3.png](data%2Fres_img%2Fres3.png)
 
 ## Reading Paper
 From the paper, we need to understand the entire workflow of the whole grabcut procedure and the algorithm it used.  
@@ -87,14 +85,6 @@ the VFunction value of the whole image. So that we don't need to calculate it fo
 to replace the matrix multiplication, and it turns to reduce the consuming time to 1/10, a big progress.
 
 
-## The grabcut's problem
-Assume we have a region belong to background, but it contains in the rect we preset, and it connects to the object. After we generate the bgd GMM model and fgd GMM model, 
-if the pixel in that region have a larger possibility in R(A"fgd") than R(A"bgd"), then we cannot cut it from fgd during the minimum cut.  
-Cause the preset bgd and fgd boundary is smooth and continue, the cut will remain the boundary unchanged, because the benefit of reduce in R(A) is 
-not enough to make up for the penalty of discontinuity. Such situation will appear if the
-fgd haves a larger amount of similar pixels than the bgd does.
-![4.png](data%2Fother_img%2F4.png)
-
 ## What if we change the GMM model to HC(histogram-based contrast) model
 Firstly the pixel distribution model will only influence the R(A) part of the energy function. So it have no difference on the boundray function, 
 which is to say that the minimum cut will still keep the pixel's continuity as much as possible.
@@ -127,6 +117,6 @@ make
 ./grabcut
 ```
 
-### modify the super parameter to play around
-![3.jpg](data%2Fother_img%2F3.jpg)
+### modify the super parameter
+![superparm.png](data%2Fother_img%2Fsuperparm.png)
 
