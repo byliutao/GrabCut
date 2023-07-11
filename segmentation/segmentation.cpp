@@ -142,8 +142,8 @@ void Segmentation::estimateSeg(GMM &fgd, GMM &bgd, Mat &img_k, Mat &horizontal, 
             }
             else{
                 //U(or R in iccv01) function, according to the paper equation(8)
-                cap_sink = -log(fgd.getWeightedProb(pixel)) * _lambda;
-                cap_source = -log(bgd.getWeightedProb(pixel)) * _lambda;
+                cap_sink = -log(fgd.getWeightedProb(pixel));
+                cap_source = -log(bgd.getWeightedProb(pixel));
             }
             graph.add_tweights(node_index, cap_source, cap_sink);
             add_edge_num += 2;
@@ -390,10 +390,9 @@ bool Segmentation::isSameLevel(pixelType pixelType1, pixelType pixelType2){
 }
 
 
-Segmentation::Segmentation(Mat &source_img, double gamma, double lambda, int iter_times){
+Segmentation::Segmentation(Mat &source_img, double gamma, int iter_times){
     _source_img = source_img.clone();
     _gamma = gamma;
-    _lambda = lambda;
     _max_iter_times = iter_times;
     _early_stop_flag = false;
     _total_change_rate = 0.0;

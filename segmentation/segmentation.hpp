@@ -26,7 +26,6 @@ private:
     Mat _T_U;
     int _max_iter_times;
     double _gamma;
-    double _lambda;
     double _beta;
     double _K;
     int _rect_area_pixel_num;
@@ -65,7 +64,7 @@ private:
 public:
 
 
-    Segmentation(Mat &source_img, double gamma, double lambda, int iter_times);
+    Segmentation(Mat &source_img, double gamma, int iter_times);
 
     void initByRect(Rect2d rect);
 

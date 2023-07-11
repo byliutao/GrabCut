@@ -10,14 +10,13 @@ Rect2d selection;
 bool isDragging = false;
 Mat image;
 
-//t_links coefficient, set bigger then Region weighs more, it should be 1.0 normally.
-const double super_parameter_lambada = 1.0;
+
 //vFunction(n_links and some t_links use) coefficient, also the max_value of vFunction, set bigger then Boundary weighs more
-const double super_parameter_gamma = 50.0;
+const double super_parameter_gamma = 10.0;
 //decide the maxIterTime of loop
 const int super_parameter_maxIterTimes = 40;
 //test image name
-const string test_image_name = "car";
+const string test_image_name = "bird1";
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
@@ -50,7 +49,7 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 }
 
 void grabcut_test(Mat &img, Rect2d &interst_area){
-    Segmentation segmentation(img,super_parameter_gamma,super_parameter_lambada,super_parameter_maxIterTimes);
+    Segmentation segmentation(img,super_parameter_gamma,super_parameter_maxIterTimes);
     segmentation.initByRect(interst_area);
     segmentation.iter();
     Mat fgd;
