@@ -91,6 +91,14 @@ to replace the matrix multiplication, and it turns to reduce the consuming time 
 Firstly the pixel distribution model will only influence the R(A) part of the energy function. So it will have no difference of the segmented-object's
 boundary. Since ...
 
+## The grabcut's problem
+Assume we have a region belong to background, but it contains in the rect we preset, and it connects to the object. After we generate the bgd GMM model and fgd GMM model, 
+if the pixel in that region have a larger possibility in R(A"fgd") than R(A"bgd"), then we cannot cut it from fgd during the minimum cut.  
+Cause the preset bgd and fgd boundary is smooth and continue, the cut will remain the boundary unchanged, because the benefit of reduce in R(A) is 
+not enough to make up for the penalty of discontinuity. Such situation will appear if the
+fgd haves a larger amount of similar pixels than the bgd does.
+![4.png](data%2Fother_img%2F4.png)
+
 ## How to use the project
 ### install opencv
 ```
