@@ -27,9 +27,6 @@ Thirdly, for minimizing the energy, it generates a graph, where each pixel repre
 It utilizes the min-cut algorithm to find a cut with the min energy value, and then use the cut generating new foreground and background, recalculating the GMM model's parameters, updating the graph's edges and doing this iteratively to
 achieve the best result of segmentation.
 
-the graph definition:  
-![1.png](data%2Fother_img%2F1.png)
-
 
 ## GMM model
 A kind of cluster algorithm, here are some helpful articles to understand it.  
@@ -68,7 +65,9 @@ ecah pixel's R(A) is equal to the combine weighted possibility of the correspond
 neighbor pixel's value. From above, we assume one pixel is from object, the R(A) value given by fgd GMM model is much larger than the value given 
 by bgd GMM model, so the cut will prefer to sever the pixel's t-link to sink T. For the B(A) value, if the pixel's neighbor pixel is very similar
 to it, the B(A) value will be great, so that the cut will prefer not to sever the pixel from its neighbor, which could keep the continue region
-from cut. 
+from cut.
+
+![1.png](data%2Fother_img%2F1.png)
 
 
 ## Combine the GMM and Minimum cut
