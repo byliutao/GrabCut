@@ -62,12 +62,34 @@ For the Minimum Cut part, what we need to do cover:
 t-links and n-links definition:  
 ![2.png](data%2F2.png)
 
+## Why can we get the best segmentation from the minimum-cut of that graph
+From the paper we acknowledge that the cut minimize the energy function, which represent the cost of current segmentation. 
+So if the graph successfully construct the energy function, the minimum-cut will go well give the result of best segmentation.   
+The energy function( E(A) = R(A) + B(A) ) contains two part, the region term R(A) and the boundary term B(A). From the garbcut definition, 
+ecah pixel's R(A) is equal to the combine weighted possibility of the corresponding GMM model, and the B(A) is equal to the variation of it's 
+neighbor pixel's value. From above, we assume one pixel is from object, the R(A) value given by fgd GMM model is much larger than the value given 
+by bgd GMM model, so the cut will prefer to sever the pixel's t-link to sink T. For the B(A) value, if the pixel's neighbor pixel is very similar
+to it, the B(A) value will be great, so that the cut will prefer not to sever the pixel from its neighbor, which could keep the continue region
+from cut. 
+
+
 ## Combine the GMM and Minimum cut
 1. init GMM's and Minimum-cut's parameters.
 2. Assign GMM components to pixels.
 3. Learning GMM parameters from data.
 4. Estimate segmentation.
 5. Repeat from step2, until convergence. 
+
+## Reducing the Consuming time of this algorithm
+1. There are some parameters that we only need to init once and reuse them afterward. Such as the inverse and the determination of covariance Mat, 
+the VFunction value of the whole image. So that we don't need to calculate it for every iteration.
+2. The matrix multiplication is really slow compare with other computation. In the gauss density function, we can use combination of add and multi 
+to replace the matrix multiplication, and it turns to reduce the consuming time to 1/10, a big progress.
+
+   
+## What if we change the GMM model to HC(histogram-based contrast) model
+Firstly the pixel distribution model will only influence the R(A) part of the energy function. So it will have no difference of the segmented-object's
+boundary. Since ...
 
 ## install dependence
 ### install opencv
