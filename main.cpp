@@ -14,7 +14,9 @@ Mat image;
 const double super_parameter_lambada = 5.0;
 //vFunction(n_links and some t_links use) coefficient, also the max_value of vFunction, set bigger then Boundary weighs more
 const double super_parameter_gamma = 50.0;
-const int super_parameter_maxIterTimes = 40;//decide the iterTime of loop
+//decide the maxIterTime of loop
+const int super_parameter_maxIterTimes = 40;
+//test image name
 const string test_image_name = "car2";
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
