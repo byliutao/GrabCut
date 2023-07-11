@@ -30,7 +30,7 @@ It utilizes the min-cut algorithm to find a cut with the min energy value, and t
 achieve the best result of segmentation.
 
 the graph definition:  
-![1.jpg](data%2F1.png)
+![1.png](data%2Fother_img%2F1.png)
 
 
 ## GMM model
@@ -60,7 +60,7 @@ For the Minimum Cut part, what we need to do cover:
 3. do max-flow to get the minimum cut.
 
 t-links and n-links definition:  
-![2.png](data%2F2.png)
+![2.png](data%2Fother_img%2F2.png)
 
 ## Why can we get the best segmentation from the minimum-cut of that graph
 From the paper we acknowledge that the cut minimize the energy function, which represent the cost of current segmentation. 
@@ -118,4 +118,7 @@ cmake ..
 make
 ./grabcut
 ```
+
+### modify the super parameter to play around
+![3.jpg](data%2Fother_img%2F3.jpg)
 
