@@ -121,7 +121,7 @@ int GMM::getRelatedK(Vec3b point){
 double GMM::getWeightedProb(Vec3b point){
     double res = 0;
     for(int i = 0; i < _K; i++){
-        res += calculatePointProbability(point,i)*_weights[i];
+        res += calculatePointProbabilitySpeedVersion(point,i)*_weights[i];
     }
     return res;
 }

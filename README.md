@@ -13,6 +13,13 @@
 6.  完成这个任务时，请思考一个问题，GMM颜色模型换成颜色直方图（可以参考这篇论文https://mmcheng.net/zh/salobj/ 看看怎么实现快速的彩色颜色的直方图），会对结果有什么影响。
 7.  对于一个400*600的图像，这个程序运行时间通常是1s以内（实现的好的话，0.1s左右也很正常）。如果你的程序运行时间明显过长，请认真优化。注意测量程序执行时间请用release模式（显示，实际运行等场合用的），而不是debug模式（调试程序用的，经常比release模式慢10倍左右）。
 
+## Result Compare (Opencv grabcut and my grabcut)
+![res1.png](data%2Fres_img%2Fres1.png)
+![res2.jpg](data%2Fres_img%2Fres2.jpg)
+![res3.jpg](data%2Fres_img%2Fres3.jpg)
+It seems my implementation has better ability to reserve the object's detail than opencv's;  
+
+
 ## Reading Paper
 From the paper, we need to understand the entire workflow of the whole grabcut procedure and the algorithm it used.  
 After reading, Here are my brief conclusion: Given an RGB image, Firstly we need to seperated the roughly background and foreground by a rectangle which denote the initial foreground.  

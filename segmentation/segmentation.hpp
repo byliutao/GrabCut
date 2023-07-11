@@ -24,11 +24,14 @@ private:
 
     Mat _source_img;
     Mat _T_U;
-    int _iter_times;
+    int _max_iter_times;
     double _gamma;
     double _lambda;
     double _beta;
     double _K;
+    int _rect_area_pixel_num;
+    double _total_change_rate;
+    bool _early_stop_flag;
 
     void assignGMM(GMM &fgd, GMM &bgd, Mat &img_k);
 
