@@ -14,9 +14,9 @@ Mat image;
 //vFunction(n_links and some t_links use) coefficient, also the max_value of vFunction, set bigger then Boundary weighs more
 const double super_parameter_gamma = 50.0;
 //decide the maxIterTime of loop
-const int super_parameter_maxIterTimes = 40;
+const int super_parameter_maxIterTimes = 20;
 //test image name
-const string test_image_name = "people1";
+const string test_image_name = "bird1";
 
 void mouseCallback(int event, int x, int y, int flags, void* userdata)
 {
@@ -79,7 +79,7 @@ void opencv_grabcut(Mat &img, Rect2d &roi){
 
 int main(){
     image = imread("/home/nuc/workspace/GrabCut/data/"+test_image_name+".jpg");
-//    resize(image,image,Size(400,300));
+    resize(image,image,Size(400,300));
     Mat img = image.clone();
     if (image.empty()) {
         std::cout << "无法读取图像文件" << std::endl;
