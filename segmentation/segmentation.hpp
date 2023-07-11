@@ -2,7 +2,7 @@
 
 #ifndef MAIN_SEGMENTATION_H
 #define MAIN_SEGMENTATION_H
-#define SHOW
+//#define SHOW
 #include <vector>
 #include <iostream>
 #include <opencv2/opencv.hpp>

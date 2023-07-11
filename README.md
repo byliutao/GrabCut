@@ -86,10 +86,6 @@ the VFunction value of the whole image. So that we don't need to calculate it fo
 2. The matrix multiplication is really slow compare with other computation. In the gauss density function, we can use combination of add and multi 
 to replace the matrix multiplication, and it turns to reduce the consuming time to 1/10, a big progress.
 
-   
-## What if we change the GMM model to HC(histogram-based contrast) model
-Firstly the pixel distribution model will only influence the R(A) part of the energy function. So it will have no difference of the segmented-object's
-boundary. Since ...
 
 ## The grabcut's problem
 Assume we have a region belong to background, but it contains in the rect we preset, and it connects to the object. After we generate the bgd GMM model and fgd GMM model, 
@@ -98,6 +94,10 @@ Cause the preset bgd and fgd boundary is smooth and continue, the cut will remai
 not enough to make up for the penalty of discontinuity. Such situation will appear if the
 fgd haves a larger amount of similar pixels than the bgd does.
 ![4.png](data%2Fother_img%2F4.png)
+
+## What if we change the GMM model to HC(histogram-based contrast) model
+Firstly the pixel distribution model will only influence the R(A) part of the energy function. So it have no difference on the boundray function, 
+which is to say that the minimum cut will still keep the pixel's continuity as much as possible.
 
 ## How to use the project
 ### install opencv
