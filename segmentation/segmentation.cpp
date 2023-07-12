@@ -365,7 +365,7 @@ double Segmentation::getTotalCap(const vector<pair<Vec3b,uchar>> &neighbors, con
         double cap = 0;
         pair<Vec3b,uchar> neighbor = neighbors[i];
 
-        cap = vFunction((pixelType)neighbor.second,(pixelType)center.second,neighbor.first,center.first);
+        cap = vFunction(Object,Object,neighbor.first,center.first);
         totalCap += cap;
     }
     return totalCap;
@@ -390,10 +390,11 @@ bool Segmentation::isSameLevel(pixelType pixelType1, pixelType pixelType2){
 }
 
 
-Segmentation::Segmentation(Mat &source_img, double gamma, int iter_times){
+Segmentation::Segmentation(Mat &source_img, double gamma, int iter_times, int gmm_model_k) {
     _source_img = source_img.clone();
     _gamma = gamma;
     _max_iter_times = iter_times;
+    _gmm_model_k = gmm_model_k;
     _early_stop_flag = false;
     _total_change_rate = 0.0;
 }
@@ -419,7 +420,7 @@ void Segmentation::initByRect(cv::Rect2d rect) {
 }
 
 void Segmentation::iter(){
-    GMM fgd(5), bgd(5);
+    GMM fgd(_gmm_model_k), bgd(_gmm_model_k);
     //获取前后景数据
     vector<Vec3b> fgd_vec, bgd_vec;
     Mat img_k(_source_img.size(), CV_32SC1);

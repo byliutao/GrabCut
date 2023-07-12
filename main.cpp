@@ -15,6 +15,8 @@ Mat image;
 const double super_parameter_gamma = 50.0;
 //decide the maxIterTime of loop
 const int super_parameter_maxIterTimes = 20;
+//GMM model' k value
+const int super_parameter_k = 5;
 //test image name
 const string test_image_name = "bird1";
 
@@ -49,7 +51,7 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata)
 }
 
 void grabcut_test(Mat &img, Rect2d &interst_area){
-    Segmentation segmentation(img,super_parameter_gamma,super_parameter_maxIterTimes);
+    Segmentation segmentation(img, super_parameter_gamma, super_parameter_maxIterTimes, super_parameter_k);
     segmentation.initByRect(interst_area);
     segmentation.iter();
     Mat fgd;

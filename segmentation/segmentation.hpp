@@ -29,6 +29,7 @@ private:
     double _beta;
     double _K;
     int _rect_area_pixel_num;
+    int _gmm_model_k;
     double _total_change_rate;
     bool _early_stop_flag;
 
@@ -64,7 +65,7 @@ private:
 public:
 
 
-    Segmentation(Mat &source_img, double gamma, int iter_times);
+    Segmentation(Mat &source_img, double gamma, int iter_times, int gmm_model_k);
 
     void initByRect(Rect2d rect);
 
