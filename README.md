@@ -86,7 +86,10 @@ to replace the matrix multiplication, and it turns to reduce the consuming time 
 
 ## What if we change the GMM model to HC(histogram-based contrast) model
 Firstly the pixel distribution model will only influence the R(A) part of the energy function. So it have no difference on the boundray function, 
-which is to say that the minimum cut will still keep the pixel's continuity as much as possible.
+which is to say that the minimum cut will still keep the pixel's continuity as much as possible.  
+For the B(A) part, considering a pixel which is very similar but no equal to the background, the bgd GMM model will still give a relative large possibility 
+but the bgd histogram model will return zero possibility if such pixel value doesn't appear in background. So the GMM model is more reliable and robust than
+the histogram.
 
 ## How to use the project
 ### install opencv
