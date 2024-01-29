@@ -1,4 +1,4 @@
-# 导师任务分配
+# GrabCut论文复现 --“南开大学计算机学院夏令营”
 
 
 要求实现一篇论文，论文信息：“GrabCut” — Interactive Foreground Extraction using Iterated Graph Cuts, ACM SIGGRAPH, 2004. https://cvg.ethz.ch/teaching/cvl/2012/grabcut-siggraph04.pdf 
@@ -91,7 +91,7 @@ For the B(A) part, considering a pixel which is very similar but no equal to the
 but the bgd histogram model will return zero possibility if such pixel value doesn't appear in background. So the GMM model is more reliable and robust than
 the histogram.
 
-## How to use the project
+## How to use the code
 ### install opencv
 ```
 # Install minimal prerequisites (Ubuntu 18.04 as reference)
